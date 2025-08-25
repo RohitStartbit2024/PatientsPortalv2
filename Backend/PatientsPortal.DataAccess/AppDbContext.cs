@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using PatientsPortal.Models.DbModels.PDF;
 using PatientsPortal.Models.DbModels.User;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,7 @@ namespace PatientsPortal.DataAccess
         public DbSet<User> Users { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<UserReport> UserReports { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -42,6 +44,18 @@ namespace PatientsPortal.DataAccess
                 .WithMany(u => u.RefreshTokens)
                 .HasForeignKey(rt => rt.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<UserReport>()
+                .HasOne(r => r.Patient)
+                .WithMany(u => u.ReportsAsPatient)
+                .HasForeignKey(r => r.PatientId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<UserReport>()
+                .HasOne(r => r.UploadedByUser)
+                .WithMany(u => u.ReportsUploaded)
+                .HasForeignKey(r => r.UploadedBy)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

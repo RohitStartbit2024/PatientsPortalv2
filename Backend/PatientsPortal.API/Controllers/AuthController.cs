@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -7,11 +8,13 @@ using PatientsPortal.DataAccess;
 using PatientsPortal.Models.DbModels.User;
 using PatientsPortal.Models.DTOs;
 using PatientsPortal.Services;
+using QRCoder;
+using System.Drawing;
+using System.IdentityModel.Tokens.Jwt;
+using System.IO;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using QRCoder;
-using System.IO;
-using System.Drawing;
 
 
 namespace PatientsPortal.API.Controllers
@@ -50,7 +53,7 @@ namespace PatientsPortal.API.Controllers
                 .Include(u => u.Role)
                 .FirstOrDefaultAsync(u => u.Email.ToLower() == dto.Email.ToLower());
 
-            if (user == null)
+            if (user == null || user.IsDeleted == true)
                 return Unauthorized("Invalid email or password");
 
             var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, dto.Password);
@@ -231,7 +234,28 @@ namespace PatientsPortal.API.Controllers
             });
         }
 
+        [HttpPost("verify")]
+        [Authorize]
+        public IActionResult Verify()
+        {
+            // check which claim names are actually present
+            var claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
 
+            var userId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
+                         ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                         ?? User.FindFirst("userId")?.Value;
+
+            var role = User.FindFirst(ClaimTypes.Role)?.Value
+                       ?? User.FindFirst("role")?.Value;
+
+            return Ok(new
+            {
+                message = "Token is valid",
+                userId,
+                role,
+                claims // debug: returns all claims so you can see names
+            });
+        }
 
         #region Private Methods
         private async Task<IActionResult> RegisterUser(RegisterDto dto, string roleName)

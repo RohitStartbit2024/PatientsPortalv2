@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { motion } from "framer-motion";
 import { login, setupMfa, verifyMfaSetup, loginMfa } from "../../api/login";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../../context/AuthContext";
 
 export default function SignInForm() {
   const navigate = useNavigate()
@@ -11,6 +12,7 @@ export default function SignInForm() {
   const [qrCode, setQrCode] = useState(null);
   const [totpCode, setTotpCode] = useState("");
   const [message, setMessage] = useState("");
+  const { setUser } = useContext(AuthContext);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -48,32 +50,52 @@ export default function SignInForm() {
   e.preventDefault();
   try {
     const res = await loginMfa(email, totpCode);
+
+    // ✅ Clear old data first
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+
+    // ✅ Save new tokens
     if (res.token) {
       localStorage.setItem("accessToken", res.token);
     }
     if (res.refreshToken) {
       localStorage.setItem("refreshToken", res.refreshToken);
-      document.cookie = `refreshToken=${res.refreshToken}; path=/; max-age=${60 * 60 * 24 * 7}; secure; samesite=strict`;
+      document.cookie = `refreshToken=${res.refreshToken}; path=/; max-age=${
+        60 * 60 * 24 * 7
+      }; secure; samesite=strict`;
     }
+
+    // ✅ Save user details
     if (res.email) {
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          email: res.email,
-          role: res.role,
-          firstName: res.firstName,
-          lastName: res.lastName,
-        })
-      );
+      const userObj = {
+        email: res.email,
+        role: res.role,
+        firstName: res.firstName,
+        lastName: res.lastName,
+      };
+
+      localStorage.setItem("user", JSON.stringify(userObj));
+
+      // 🔥 Update React state immediately (if you’re using AuthContext)
+      if (typeof setUser === "function") {
+        setUser(userObj);
+      }
     }
+
     setMessage("Login successful ✅");
-    if(res.role == 'Patient'){navigate('/dashboard')}
-    else if(res.role == 'Admin'){navigate('/admin-dashboard')}
+
+    // ✅ Navigate by role
+    if (res.role === "Patient") {
+      navigate("/dashboard");
+    } else if (res.role === "Admin") {
+      navigate("/admin-dashboard");
+    }
   } catch (err) {
     setMessage(err.message || "MFA login failed ❌");
   }
 };
-
 
   return (
     <>

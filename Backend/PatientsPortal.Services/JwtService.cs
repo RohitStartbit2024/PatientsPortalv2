@@ -17,7 +17,6 @@ namespace PatientsPortal.Services
 
         public JwtService(IConfiguration config)
         {
-            // Read all JWT settings from configuration
             _secret = config["Jwt:Key"] ?? throw new ArgumentNullException("Jwt:Key");
             _issuer = config["Jwt:Issuer"] ?? throw new ArgumentNullException("Jwt:Issuer");
             _audience = config["Jwt:Audience"] ?? throw new ArgumentNullException("Jwt:Audience");
@@ -31,17 +30,25 @@ namespace PatientsPortal.Services
         /// <summary>
         /// Generates a JWT token for a user.
         /// </summary>
-        /// <param name="userId">User ID as string or GUID.</param>
-        /// <param name="email">User email (optional but recommended).</param>
-        /// <param name="role">User role.</param>
-        /// <param name="expireMinutes">Custom expiration in minutes (optional).</param>
-        /// <returns>JWT token as string.</returns>
+        /// <param name="userId">User ID (int or string)</param>
+        /// <param name="role">User role</param>
+        /// <param name="email">Optional email</param>
+        /// <param name="expireMinutes">Custom expiration</param>
+        /// <returns>JWT token string</returns>
         public string GenerateToken(string userId, string role, string? email = null, double? expireMinutes = null)
         {
             var claims = new List<Claim>
             {
+                // "sub" claim
                 new Claim(JwtRegisteredClaimNames.Sub, userId),
+
+                // Explicitly add NameIdentifier claim for ASP.NET convenience
+                new Claim(ClaimTypes.NameIdentifier, userId),
+
+                // Role claim
                 new Claim(ClaimTypes.Role, role),
+
+                // Token unique ID
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
@@ -65,5 +72,31 @@ namespace PatientsPortal.Services
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+        public ClaimsPrincipal? ValidateToken(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes(_secret);
+
+            try
+            {
+                var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = _issuer,
+                    ValidAudience = _audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(key)
+                }, out _);
+
+                return principal;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
     }
 }

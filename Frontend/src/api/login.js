@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://localhost:7089/api";
+const API_BASE_URL = "http://localhost:5133/api";
 
 // Step 1 - Login
 export async function login(email, password) {
@@ -102,3 +102,20 @@ export async function registerPatient(data) {
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
+
+export const verifyToken = async (token) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/verify`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.ok; // true if valid, false if not
+  } catch (error) {
+    console.error("Token verification failed:", error);
+    return false;
+  }
+};

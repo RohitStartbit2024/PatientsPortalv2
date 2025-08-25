@@ -1,11 +1,11 @@
 import './App.css';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from './pages/Login/Login';
-import AdminDashboard from './pages/AdminDashboard/AdminDashboard';
-import Dashboard from './pages/Dashboard/Dashboard';
-import UploadReports from './pages/UploadReports/UploadReports';
-import Reports from './pages/Reports/Reports';
-
+import AdminDashboard from './pages/Admin/AdminDashboard/AdminDashboard';
+import UploadReports from './pages/Admin/UploadReports/UploadReports';
+import Dashboard from './pages/Patient/Dashboard/Dashboard';
+import Reports from './pages/Patient/Reports/Reports';
+import Sidebar from './components/Sidebar/Sidebar';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './context/ProtectedRoute';
 
@@ -13,6 +13,7 @@ function App() {
   return (
     <AuthProvider>
       <Router>
+        <Sidebar /> {/* 👈 sidebar always available if user is logged in */}
         <Routes>
           {/* Public route */}
           <Route path="/" element={<Login />} />

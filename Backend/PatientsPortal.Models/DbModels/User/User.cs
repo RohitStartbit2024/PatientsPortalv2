@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PatientsPortal.Models.DbModels.PDF;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -24,9 +25,14 @@ namespace PatientsPortal.Models.DbModels.User
 
         // FK → UserRole
         public int RoleId { get; set; }
+        public bool? IsDeleted { get; set; } = false;
         public UserRole Role { get; set; } = null!;
 
         // Navigation
-        public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+        public ICollection<RefreshToken>? RefreshTokens { get; set; } = new List<RefreshToken>();
+        public virtual ICollection<UserReport>? ReportsAsPatient { get; set; } = new List<UserReport>();
+
+        // Reports this user uploaded
+        public virtual ICollection<UserReport>? ReportsUploaded { get; set; } = new List<UserReport>();
     }
 }
