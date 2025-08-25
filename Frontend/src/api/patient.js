@@ -1,10 +1,10 @@
-const API_BASE_URL = "http://localhost:5133/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL+"/patient";
 
 // -----------------------------
 // Get all reports for a patient
 // -----------------------------
 export async function getReports(email, token) {
-  const res = await fetch(`${API_BASE_URL}/patient/${email}/reports`, {
+  const res = await fetch(`${API_BASE_URL}/${email}/reports`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -21,7 +21,7 @@ export async function getReports(email, token) {
 // -----------------------------
 export async function downloadReport(email, reportId, token, reportTitle) {
   const res = await fetch(
-    `${API_BASE_URL}/patient/${email}/reports/${reportId}/download`,
+    `${API_BASE_URL}/${email}/reports/${reportId}/download`,
     {
       method: "GET",
       headers: {

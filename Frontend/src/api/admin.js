@@ -1,10 +1,9 @@
-const API_BASE_URL = "http://localhost:5133/api";
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL+"/Admin";
 // -----------------------------
 // Get Patients List (Admin only)
 // -----------------------------
 export async function getPatients(token) {
-  const res = await fetch(`${API_BASE_URL}/Admin/patients-list`, {
+  const res = await fetch(`${API_BASE_URL}/patients-list`, {
     method: "GET",
     headers: {
       "Authorization": `Bearer ${token}`, // Pass JWT token
@@ -25,7 +24,7 @@ export async function uploadReport(token, patientId, title, description, pdfFile
   formData.append("ReportDescription", description);
   formData.append("ReportPdf", pdfFile);
 
-  const res = await fetch(`${API_BASE_URL}/Admin/upload-report`, {
+  const res = await fetch(`${API_BASE_URL}/upload-report`, {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${token}`, // Admin token
